@@ -9,7 +9,47 @@ import { emailRegExp, passwordRegExp } from '../regExp';
 import { check } from 'express-validator';
 import errorGenerator from '../errors/errorGenerator';
 
-const signIn = async (req: Request, res: Response, next: NextFunction) => {};
+const signIn = async (req: Request, res: Response, next: NextFunction) => {
+  await check('email').not().isEmpty().matches(emailRegExp).run(req);
+  await check('password').not().isEmpty().matches(passwordRegExp).run(req);
+
+  const { email, password }: IUserInputDTO = req.body;
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ code: 400, errors: errors.array() });
+    }
+
+    const user = await UserService.findEmail({ email });
+    if (!user) {
+      return errorGenerator({ statusCode: 401 });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return errorGenerator({ statusCode: 401 });
+    }
+
+    const payload = { user: { email: user.email } };
+
+    jwt.sign(payload, process.env.JWS_SECRETE, { expiresIn: 36000 }, (err, token) => {
+      if (err) throw err;
+      res.status(200).json({
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          status: user.status,
+          token,
+        },
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 const signUp = async (req: Request, res: Response, next: NextFunction) => {
   await check('email').not().isEmpty().matches(emailRegExp).run(req);
@@ -38,20 +78,15 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const createdUser = await UserService.createUser({ email, name, password: hashedPassword, avatar, status: 'live' });
-    const payload = { user: { email: createdUser.email } };
 
-    jwt.sign(payload, process.env.JWS_SECRETE, { expiresIn: 36000 }, (err, token) => {
-      if (err) throw err;
-      res.status(200).json({
-        user: {
-          id: createdUser._id,
-          email: createdUser.email,
-          name: createdUser.name,
-          avatar: createdUser.avatar,
-          status: createdUser.status,
-          token,
-        },
-      });
+    res.status(200).json({
+      user: {
+        id: createdUser._id,
+        email: createdUser.email,
+        name: createdUser.name,
+        avatar: createdUser.avatar,
+        status: createdUser.status,
+      },
     });
   } catch (err) {
     next(err);

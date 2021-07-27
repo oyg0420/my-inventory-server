@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "nodemon",
-    "dev": "ts-node src",
+    "start": "nodemon",
     "build": "tsc && node dist"
   },
   "devDependencies": {
