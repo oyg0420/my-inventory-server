@@ -6,4 +6,9 @@ const createUser = (data: IUserInputDTO) => {
   return user.save();
 };
 
-export default { createUser };
+const findEmail = async (data: { email: string }) => {
+  const user = await User.findOne({ email: data.email });
+  return user;
+};
+
+export default { createUser, findEmail };

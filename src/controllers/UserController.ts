@@ -5,8 +5,9 @@ import gravatar from 'gravatar';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../services';
-import { emailRegExp, passwordRegExp } from '../regEx';
-import { body, check } from 'express-validator';
+import { emailRegExp, passwordRegExp } from '../regExp';
+import { check } from 'express-validator';
+import errorGenerator from '../errors/errorGenerator';
 
 const signIn = async (req: Request, res: Response, next: NextFunction) => {};
 
@@ -20,6 +21,12 @@ const signUp = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ code: 400, errors: errors.array() });
+    }
+
+    const user = await UserService.findEmail({ email });
+
+    if (user) {
+      errorGenerator({ statusCode: 409 });
     }
 
     const avatar = gravatar.url(email, {
