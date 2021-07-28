@@ -10,6 +10,7 @@ const ProductSchema = new mongoose.Schema<IProduct>({
   barcode: String,
   expirationDate: { type: Date, require: true },
   quantity: { type: Number, require: true },
+
   user: { type: mongoose.Types.ObjectId, require: true, ref: 'user' },
 });
 
