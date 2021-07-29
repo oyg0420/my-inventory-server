@@ -14,6 +14,7 @@ export interface ErrorWithStatusCode extends Error {
 
 const errorGenerator = ({ msg = '', statusCode = 500 }: { msg?: string; statusCode: number }): void => {
   const err: ErrorWithStatusCode = new Error(msg || DEFAULT_HTTP_STATUS_MESSAGES[statusCode]);
+
   err.statusCode = statusCode;
   throw err;
 };
