@@ -6,7 +6,16 @@ const fetch = async (req: Request, res: Response, next: NextFunction) => {
   const formattedKeyword = keyword.toString().replace(' ', '');
   try {
     const [keywordItem, totalCount, relKeywords] = await fetchKeyword(formattedKeyword);
-    const totalVolume = keywordItem.monthlyPcQcCnt + keywordItem.monthlyMobileQcCnt;
+    let totalVolume = 0;
+
+    if (Number(keywordItem.monthlyPcQcCnt) > 0) {
+      totalVolume += Number(keywordItem.monthlyPcQcCnt);
+    }
+
+    if (Number(keywordItem.monthlyMobileQcCnt) > 0) {
+      totalVolume += Number(keywordItem.monthlyMobileQcCnt);
+    }
+
     return res.status(200).json({
       result: {
         keyword: keywordItem.relKeyword,
