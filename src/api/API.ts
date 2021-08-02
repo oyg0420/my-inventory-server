@@ -2,10 +2,6 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import errorGenerator from '../errors/errorGenerator';
 
-const SECRET_KEY = 'AQAAAAAvuB4bRl/3tvB1d5u1YGhuUBaNeVU8i36hW/ng0M/Low==';
-const ACCEESS_KEY = '010000000098e60bb0f531bb0b5bb4d65d0d7f824149780f917c09b3c1dfd8c07937d0256d';
-const CUSTOMER_ID = 1836463;
-
 type HeaderSignatureConfig = {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   url: string;
@@ -16,16 +12,16 @@ export const getHeaderOptionsForAds = (config: HeaderSignatureConfig) => {
   const { timeStamp } = config;
   return {
     'X-Timestamp': timeStamp,
-    'X-API-KEY': ACCEESS_KEY,
-    'X-API-SECRET': SECRET_KEY,
-    'X-CUSTOMER': CUSTOMER_ID,
+    'X-API-KEY': process.env.ACCEESS_KEY,
+    'X-API-SECRET': process.env.SECRET_KEY,
+    'X-CUSTOMER': process.env.CUSTOMER_ID,
     'X-Signature': getSignatureForAds(config),
   };
 };
 
 export const getSignatureForAds = (config: HeaderSignatureConfig) => {
   const { method, url, timeStamp } = config;
-  const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, SECRET_KEY);
+  const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, process.env.SECRET_KEY);
   hmac.update(timeStamp + '.' + method + '.' + url);
 
   return hmac.finalize().toString(CryptoJS.enc.Base64);
@@ -33,8 +29,8 @@ export const getSignatureForAds = (config: HeaderSignatureConfig) => {
 
 export const getHeaderOptionForShopping = () => {
   return {
-    'X-Naver-Client-Id': 'Oa_vNtpvEILJ4egvcRhs',
-    'X-Naver-Client-Secret': '9VUnV_mHnH',
+    'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID,
+    'X-Naver-Client-Secret': process.env.NAVER_CLIENT_SECRET,
   };
 };
 

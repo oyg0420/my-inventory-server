@@ -1,5 +1,4 @@
 import errorGenerator from '../errors/errorGenerator';
-import express, { Request, Response, NextFunction } from 'express';
 import { getHeaderOptionForShopping, getHeaderOptionsForAds } from '../api/API';
 import axios from 'axios';
 import parserHTML from '../modules/parseHTML';
@@ -27,7 +26,9 @@ const getKeywordsTool = async (keyword: string) => {
     });
     return {
       ...result.data.keywordList[0],
-      relKeywords: result.data.keywordList.map(keywordItem => keywordItem.relKeyword),
+      relKeywords: result.data.keywordList
+        .filter(keywordItem => keywordItem.relKeyword.replace(' ', '').includes(keyword))
+        .map(keywordItem => keywordItem.relKeyword),
     };
   } catch (err) {
     errorGenerator(err.message);
@@ -46,35 +47,14 @@ const getSearchShop = async (keyword: string) => {
   }
 };
 
-export const fetchKeyword = async (req: Request, res: Response, next: NextFunction) => {
-  const { keyword } = req.query;
-  const formattedKeyword = keyword.toString().replace(' ', '');
-  try {
-    const [keywordItem, totalCount, relKeywords] = await Promise.all([
-      getKeywordsTool(formattedKeyword),
-      getSearchShop(formattedKeyword),
-      parserHTML({
-        url: 'https://search.shopping.naver.com/search/all',
-        query: formattedKeyword,
-        selector: 'div.relatedTags_relation_srh__1CleC ul li a',
-      }),
-    ]);
-
-    const totalVolume = keywordItem.monthlyPcQcCnt + keywordItem.monthlyMobileQcCnt;
-
-    return res.status(200).json({
-      result: {
-        keyword: keywordItem.relKeyword,
-        relativeKeywords: relKeywords,
-        searchVolumeWithPC: keywordItem.monthlyPcQcCnt,
-        searchVolumeWithMobile: keywordItem.monthlyMobileQcCnt,
-        totalVolume,
-        totalCount,
-        competition: Number((totalCount / totalVolume).toFixed(3)),
-        competitiveStrength: keywordItem.compIdx,
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
+export const fetchKeyword = async (keyword: string) => {
+  return await Promise.all([
+    getKeywordsTool(keyword),
+    getSearchShop(keyword),
+    parserHTML({
+      url: 'https://search.shopping.naver.com/search/all',
+      query: keyword,
+      selector: 'div.relatedTags_relation_srh__1CleC ul li a',
+    }),
+  ]);
 };

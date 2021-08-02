@@ -13,6 +13,7 @@ connectDB();
 app.use(express.urlencoded());
 app.use(express.json());
 app.use(cors());
+// app.use(verifyAuthToken);
 app.use(router);
 app.use(globalErrorHandler);
 
