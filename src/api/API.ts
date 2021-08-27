@@ -37,7 +37,7 @@ export const getHeaderOptionForShopping = () => {
 export const getHtml = async (url: string, params: { query: string }) => {
   try {
     const result = await axios.get(url, {
-      params: { query: params.query },
+      params: { query: params.query, frm: 'NVSHATC' },
     });
     return result.data;
   } catch (err) {

@@ -8,7 +8,7 @@ const fetch = async (req: Request, res: Response, next: NextFunction) => {
     const keywordList = await getKeywordsTool(formattedKeyword);
 
     return res.status(200).json({
-      result: keywordList,
+      result: keywordList.slice(0, 30),
     });
   } catch (err) {
     next(err);

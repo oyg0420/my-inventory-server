@@ -2,6 +2,7 @@ import errorGenerator from '../errors/errorGenerator';
 import { getHeaderOptionForShopping, getHeaderOptionsForAds } from '../api/API';
 import axios from 'axios';
 import parserHTML from '../modules/parseHTML';
+import { uniq } from 'lodash';
 
 type KeywordItem = {
   relKeyword: string;
@@ -14,8 +15,17 @@ type GetKeywordsToolResponse = {
   keywordList: KeywordItem[];
 };
 
+type Item = {
+  category1: string;
+  category2: string;
+  category3: string;
+  category4: string;
+  lprice: number;
+};
+
 type GetSearchShopResponse = {
   total: number;
+  items: Item[];
 };
 
 const getKeywordsTool = async (keyword: string) => {
@@ -38,10 +48,33 @@ const getKeywordsTool = async (keyword: string) => {
 const getSearchShop = async (keyword: string) => {
   try {
     const result = await axios.get<GetSearchShopResponse>('https://openapi.naver.com/v1/search/shop.json', {
-      params: { query: keyword.replace(' ', ''), start: 1, sort: 'sim' },
+      params: { query: keyword.replace(' ', ''), start: 2, sort: 'sim', display: 10 },
       headers: getHeaderOptionForShopping(),
     });
-    return result.data.total;
+    let prices = 0;
+    result.data.items.forEach(item => {
+      prices += Number(item.lprice);
+    });
+    const avgPrice = prices / result.data.items.length;
+
+    const categories = result.data.items.map(item => {
+      let category = '';
+      if (item.category1) {
+        category += item.category1;
+      }
+      if (item.category2) {
+        category += `/${item.category2}`;
+      }
+      if (item.category3) {
+        category += `/${item.category3}`;
+      }
+      if (item.category4) {
+        category += `/${item.category4}`;
+      }
+      return category;
+    });
+
+    return { total: result.data.total, categories: uniq(categories) };
   } catch (err) {
     errorGenerator(err.message);
   }
@@ -52,9 +85,19 @@ export const fetchKeyword = async (keyword: string) => {
     getKeywordsTool(keyword),
     getSearchShop(keyword),
     parserHTML({
-      url: 'https://search.shopping.naver.com/search/all',
-      query: keyword,
-      selector: 'div.relatedTags_relation_srh__1CleC ul li a',
+      url: process.env.NAVER_REQUEST_URL,
+      query: `frm=NVSHCHK&query=${keyword}&pagingIndex=1&pagingSize=80`,
+      selectors: [
+        { key: 'keyword', value: process.env.NAVER_QUERY_SELECTOR_KEYWORD },
+        {
+          key: 'price',
+          value: process.env.NAVER_QUERY_SELECTOR_PRICE,
+        },
+        {
+          key: 'etc',
+          value: 'ul.list_basis li.basicList_item__2XT81 div.basicList_inner__eY_mq .basicList_etc_box__1Jzg6 a',
+        },
+      ],
     }),
   ]);
 };

@@ -5,7 +5,7 @@ const fetch = async (req: Request, res: Response, next: NextFunction) => {
   const { keyword } = req.query;
   const formattedKeyword = keyword.toString().replace(' ', '');
   try {
-    const [keywordItem, totalCount, relKeywords] = await fetchKeyword(formattedKeyword);
+    const [keywordItem, merchant, parsingData] = await fetchKeyword(formattedKeyword);
     let totalVolume = 0;
 
     if (Number(keywordItem.monthlyPcQcCnt) > 0) {
@@ -19,13 +19,14 @@ const fetch = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({
       result: {
         keyword: keywordItem.relKeyword,
-        relativeKeywords: relKeywords,
+        relativeKeywords: parsingData.keyword,
         searchVolumeWithPC: keywordItem.monthlyPcQcCnt,
         searchVolumeWithMobile: keywordItem.monthlyMobileQcCnt,
         totalVolume,
-        totalCount,
-        competition: Number((totalCount / totalVolume).toFixed(3)),
+        totalCount: merchant.total,
+        competition: Number((merchant.total / totalVolume).toFixed(3)),
         competitiveStrength: keywordItem.compIdx,
+        categories: merchant.categories,
       },
     });
   } catch (err) {
