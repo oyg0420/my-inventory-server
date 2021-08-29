@@ -20,13 +20,16 @@ const fetch = async (req: Request, res: Response, next: NextFunction) => {
       result: {
         keyword: keywordItem.relKeyword,
         relativeKeywords: parsingData.keyword,
+        price: parsingData.price,
+        etc: parsingData.etc,
+        image: parsingData.image[0],
         searchVolumeWithPC: keywordItem.monthlyPcQcCnt,
         searchVolumeWithMobile: keywordItem.monthlyMobileQcCnt,
         totalVolume,
         totalCount: merchant.total,
         competition: Number((merchant.total / totalVolume).toFixed(3)),
         competitiveStrength: keywordItem.compIdx,
-        categories: merchant.categories,
+        category: merchant.categories[0],
       },
     });
   } catch (err) {

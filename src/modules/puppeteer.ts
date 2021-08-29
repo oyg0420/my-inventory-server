@@ -13,7 +13,7 @@ const runBrowserScroll = async (page: puppeteer.Page) => {
     scrollHeight = await page.evaluate('document.body.scrollHeight');
     await page.evaluate(`window.scrollTo(0, ${scrollHeight})`);
     nextScrollHeight = await page.evaluate('document.body.scrollHeight');
-    await page.waitFor(5000);
+    await page.waitFor(500);
   } while (nextScrollHeight - scrollHeight > 0);
   return await page.content();
 };

@@ -6,7 +6,7 @@ import { runBrowserWithPuppeteer } from './puppeteer';
 type ParserHTMLOption = {
   query: string;
   url: string;
-  selectors: { key: string; value: string }[];
+  selectors: { key: string; value: string; type?: 'image' | 'text' }[];
 };
 
 const parserHTML = async (option: ParserHTMLOption) => {
@@ -24,10 +24,18 @@ const parserHTML = async (option: ParserHTMLOption) => {
   selectors.map(selector => {
     const $bodyList = $(selector.value);
     $bodyList.each(function () {
-      if (result[selector.key]) {
-        result[selector.key].push(cheerio.text($(this)));
+      if (selector.type === 'image') {
+        if (result[selector.key]) {
+          result[selector.key].push($(this).attr('src'));
+        } else {
+          result[selector.key] = [$(this).attr('src')];
+        }
       } else {
-        result[selector.key] = [cheerio.text($(this))];
+        if (result[selector.key]) {
+          result[selector.key].push(cheerio.text($(this)));
+        } else {
+          result[selector.key] = [cheerio.text($(this))];
+        }
       }
     });
   });

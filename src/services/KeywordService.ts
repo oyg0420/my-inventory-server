@@ -55,7 +55,6 @@ const getSearchShop = async (keyword: string) => {
     result.data.items.forEach(item => {
       prices += Number(item.lprice);
     });
-    const avgPrice = prices / result.data.items.length;
 
     const categories = result.data.items.map(item => {
       let category = '';
@@ -95,7 +94,12 @@ export const fetchKeyword = async (keyword: string) => {
         },
         {
           key: 'etc',
-          value: 'ul.list_basis li.basicList_item__2XT81 div.basicList_inner__eY_mq .basicList_etc_box__1Jzg6 a',
+          value: process.env.NAVER_QUERY_SELECTOR_ETC,
+        },
+        {
+          key: 'image',
+          value: process.env.NAVER_QUERY_SELECTOR_IMAGE,
+          type: 'image',
         },
       ],
     }),
